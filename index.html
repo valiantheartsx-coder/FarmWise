@@ -25,8 +25,10 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, Arial, sans-serif; }
-    html { scroll-padding-bottom: 130px; }
-    body { background: radial-gradient(circle at top left, #e7f2e3 0, transparent 38%), var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 132px; }
+    html { scroll-padding-bottom: 96px; overflow-x: hidden; }
+    body { background: radial-gradient(circle at top left, #e7f2e3 0, transparent 38%), var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 96px; overflow-x: hidden; }
+    body.modal-open { overflow: hidden; }
+    body.modal-open main, body.modal-open header { pointer-events: none; }
 
     header { background: linear-gradient(135deg, #6e9b72, var(--primary)); color: white; padding: 22px 16px 18px; position: relative; z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
     .topbar { max-width: 1180px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
@@ -46,8 +48,8 @@
     body.seller-dashboard-mode .seller-tabs button { flex: 1 0 auto; border: none; background: transparent; color: var(--muted); padding: 10px 13px; border-radius: 18px; cursor: pointer; font-weight: 900; white-space: nowrap; }
     body.seller-dashboard-mode .seller-tabs button.active { background: rgba(36, 74, 50, .94); color: white; box-shadow: inset 0 1px 0 rgba(255,255,255,.24); }
 
-    main { max-width: 1180px; margin: 20px auto 160px; padding: 0 16px 60px; }
-    section { display: none; padding-bottom: 24px; }
+    main { max-width: 1180px; margin: 20px auto 96px; padding: 0 16px 28px; overflow-x: hidden; }
+    section { display: none; padding-bottom: 8px; }
     section.active { display: block; animation: fade .22s ease; }
     @keyframes fade { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.12) rotate(-5deg); } 100% { transform: scale(1); } }
@@ -74,6 +76,7 @@
     .dashboard-hero h2 { color: white; font-size: 24px; margin-bottom: 8px; }
     .dashboard-hero .muted { color: rgba(255,255,255,.82); }
     .dashboard-hero-content { position:relative; z-index:1; display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; align-items:stretch; }
+    .dashboard-hero-content.dashboard-hero-single { grid-template-columns: 1fr; }
     .hero-kpis { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:8px; margin-top:16px; }
     .hero-kpi { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); border-radius:16px; padding:10px; backdrop-filter: blur(14px); }
     .hero-kpi strong { display:block; font-size:22px; line-height:1; }
@@ -100,6 +103,14 @@
     .health-card { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(234,247,235,.72)); }
 
     .list { display: grid; gap: 12px; }
+    .record-card { display:grid; gap:11px; padding:16px; border-radius:20px; background:linear-gradient(145deg, rgba(255,253,248,.96), rgba(248,245,237,.9)); border:1px solid rgba(222,213,197,.9); box-shadow:0 12px 26px rgba(36,74,50,.09); }
+    .record-card.green { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(228,244,232,.78)); }
+    .record-card.gold { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(246,235,212,.78)); }
+    .record-card.red { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(255,228,228,.74)); }
+    .record-row { display:grid; grid-template-columns:105px 1fr; gap:10px; align-items:start; }
+    .record-row span { color:var(--muted); font-size:12px; font-weight:950; text-transform:uppercase; letter-spacing:.04em; }
+    .record-row strong, .record-row p { color:var(--text); font-size:15px; line-height:1.35; word-break:break-word; }
+    .record-row .tag { margin-top:0; width:max-content; max-width:100%; }
     .item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px; background: var(--surface-2); border-radius: 16px; }
     .item strong { color: var(--text); }
     .item-img { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 27px; background: linear-gradient(135deg, #f8ead4, #dcebd8); flex: 0 0 auto; }
@@ -138,10 +149,12 @@
     .cart-float { position: fixed; right: 18px; bottom: 98px; z-index: 44; width: 58px; height: 58px; display: grid; place-items: center; background: rgba(255,255,255,.42); color: var(--primary); border: 1px solid rgba(255,255,255,.76); border-radius: 22px; font-size: 22px; font-weight: 950; box-shadow: 0 16px 38px rgba(31, 74, 45, .24); cursor: pointer; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
     .cart-count { position: absolute; top: -7px; right: -7px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; background: var(--primary); color: white; border: 2px solid rgba(255,255,255,.86); font-size: 12px; line-height: 1; }
 
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.46); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 60; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.46); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 60; overflow: hidden; }
     .modal.active { display: flex; }
-    .modal-card { width: min(760px, 100%); max-height: 92vh; overflow: auto; background: var(--surface-solid); border-radius: 24px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+    .modal-card { width: min(760px, 100%); max-height: 92vh; overflow: auto; overscroll-behavior: contain; background: var(--surface-solid); border-radius: 24px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
     .modal-card.small { max-width: 430px; }
+    #messageModal { z-index: 90; }
+    #crudModal { z-index: 70; }
     .modal-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom: 14px; }
     .close { border:none; width: 38px; height: 38px; border-radius: 50%; background: var(--surface-2); cursor:pointer; font-weight:950; }
     .form-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -232,8 +245,8 @@
     }
 
     @media (max-width: 560px) {
-      body { padding-bottom: 150px; }
-      main { padding: 0 12px 86px; margin-top: 14px; margin-bottom: 180px; }
+      body { padding-bottom: 104px; }
+      main { padding: 0 12px 24px; margin-top: 14px; margin-bottom: 102px; }
       .grid, .grid-3, .products { grid-template-columns: 1fr; }
       .seller-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 7px; }
       .seller-stats .card { padding: 10px 7px; border-radius: 14px; }
@@ -330,15 +343,11 @@
   <main>
     <section id="home" class="active">
       <div class="panel dashboard-hero">
-        <div class="dashboard-hero-content">
+        <div class="dashboard-hero-content dashboard-hero-single">
           <div>
             <h2>Farm Overview</h2>
-            <p class="muted">A quick view of your farms, herds, health alerts, shop stocks, and orders today.</p>
+            <p class="muted">A quick view of your farms, herds, health alerts, shop stocks, and orders.</p>
             <div class="hero-kpis" id="heroKpis"></div>
-          </div>
-          <div class="today-feed">
-            <h3>Today’s Activity</h3>
-            <div id="todaySummary"></div>
           </div>
         </div>
       </div><br />
@@ -437,6 +446,7 @@
         </div><br />
         <div id="orderSummary"></div><br />
         <button class="primary" style="width:100%" onclick="placeOrder()">Place Order</button>
+        <button class="secondary" style="width:100%; margin-top:10px" onclick="closeModal('checkoutModal'); showSection('shop')">Continue Shopping</button>
       </div>
     </div>
   </div>
@@ -571,7 +581,7 @@
       const btn = document.getElementById('messageActionBtn');
       btn.textContent = buttonText;
       btn.onclick = action || (() => closeModal('messageModal'));
-      document.getElementById('messageModal').classList.add('active');
+      openModal('messageModal');
     }
     function goToShopFromMessage() { closeModal('messageModal'); closeModal('checkoutModal'); showSection('shop'); }
 
@@ -586,7 +596,11 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function syncModalLock() {
+      document.body.classList.toggle('modal-open', !!document.querySelector('.modal.active'));
+    }
+    function openModal(id) { document.getElementById(id).classList.add('active'); syncModalLock(); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); syncModalLock(); }
 
     function renderAll() {
       renderDashboard(); renderProduction(); renderHealth(); renderFarms(); renderProducts(); renderOrdersPage(); renderSeller(); updateCartCount(); updateSellerUI();
@@ -603,18 +617,12 @@
       const latestAttention = health.find(h => !['done','normal','good','stable','completed'].includes(String(h.status).toLowerCase()));
       const farmNamesHtml = farms.slice(0,4).map(f => `<span class="dash-pill gold">${esc(f.name)}</span>`).join('') || '<span class="dash-pill">No farms yet</span>';
       const herdBreakdownHtml = farms.slice(0,4).map(f => `<div class="detail-row"><span>${esc(f.animals)}</span><strong>${Number(f.herds || 0)}</strong></div>`).join('') || '<div class="detail-row"><span>No herd records</span><strong>0</strong></div>';
-      const todayItems = production.slice(0,3).map((p, i) => `
-        <div class="today-feed-item">
-          <div class="today-feed-icon">${['🌾','🥛','📈'][i] || '✅'}</div>
-          <div><strong>${esc(p.title)}</strong><p>${esc(p.value)} — ${esc(p.note || p.status || 'Updated today')}</p></div>
-        </div>`).join('') || '<p class="muted">No production activity yet.</p>';
 
       document.getElementById('heroKpis').innerHTML = `
         <div class="hero-kpi"><strong>${totalFarms}</strong><span>Farms</span></div>
         <div class="hero-kpi"><strong>${totalHerds}</strong><span>Herds</span></div>
         <div class="hero-kpi"><strong>${needs}</strong><span>Alerts</span></div>
         <div class="hero-kpi"><strong>${orders.length}</strong><span>Orders</span></div>`;
-      document.getElementById('todaySummary').innerHTML = todayItems;
       document.getElementById('dashboardCards').innerHTML = `
         <div class="card metric-card">
           <div class="metric-head"><div><div class="metric-title">Managed Locations</div><div class="metric-value">${totalFarms}</div></div><div class="metric-icon">🏡</div></div>
@@ -656,13 +664,31 @@
     }
 
     function renderProduction() {
-      document.getElementById('productionCards').innerHTML = production.map(p => `<div class="card"><div class="label">${p.title}</div><div class="number">${p.value}</div><span class="tag ${statusClass(p.status)}">${p.status}</span></div>`).join('');
-      document.getElementById('productionList').innerHTML = production.map(p => `<div class="item"><div><strong>${p.title}</strong><p class="muted">${p.note}</p></div><span class="tag ${statusClass(p.status)}">${p.status}</span></div>`).join('');
+      document.getElementById('productionCards').innerHTML = '';
+      document.getElementById('productionList').classList.remove('panel');
+      document.getElementById('productionList').innerHTML = production.map(p => {
+        const cls = statusClass(p.status) === 'green' ? 'green' : statusClass(p.status) === 'red' ? 'red' : 'gold';
+        return `<div class="record-card ${cls}">
+          <div class="record-row"><span>Title</span><strong>${esc(p.title)}</strong></div>
+          <div class="record-row"><span>Value</span><strong>${esc(p.value)}</strong></div>
+          <div class="record-row"><span>Note</span><p>${esc(p.note)}</p></div>
+          <div class="record-row"><span>Status</span><span class="tag ${statusClass(p.status)}">${esc(p.status)}</span></div>
+        </div>`;
+      }).join('') || '<div class="panel"><p class="muted">No production records yet.</p></div>';
     }
 
     function renderHealth() {
-      document.getElementById('healthCards').innerHTML = health.map(h => `<div class="card"><div class="label">${h.animal}</div><div class="number" style="font-size:20px">${h.condition}</div><span class="tag ${statusClass(h.status)}">${h.status}</span></div>`).join('');
-      document.getElementById('healthList').innerHTML = health.map(h => `<div class="item"><div><strong>${h.animal}</strong><p class="muted">${h.condition}. ${h.action}</p></div><span class="tag ${statusClass(h.status)}">${h.status}</span></div>`).join('');
+      document.getElementById('healthCards').innerHTML = '';
+      document.getElementById('healthList').classList.remove('panel');
+      document.getElementById('healthList').innerHTML = health.map(h => {
+        const cls = statusClass(h.status) === 'green' ? 'green' : statusClass(h.status) === 'red' ? 'red' : 'gold';
+        return `<div class="record-card ${cls}">
+          <div class="record-row"><span>Animal</span><strong>${esc(h.animal)}</strong></div>
+          <div class="record-row"><span>Condition</span><strong>${esc(h.condition)}</strong></div>
+          <div class="record-row"><span>Action</span><p>${esc(h.action)}</p></div>
+          <div class="record-row"><span>Status</span><span class="tag ${statusClass(h.status)}">${esc(h.status)}</span></div>
+        </div>`;
+      }).join('') || '<div class="panel"><p class="muted">No health records yet.</p></div>';
     }
 
     function renderFarms() {
@@ -714,7 +740,7 @@
       updateCartCount(); saveData(); renderCheckout();
     }
 
-    function openCheckout() { document.getElementById('checkoutModal').classList.add('active'); renderCheckout(); }
+    function openCheckout() { openModal('checkoutModal'); renderCheckout(); }
 
     function renderCheckout() {
       const box = document.getElementById('cartItems');
@@ -837,7 +863,7 @@
         <div class="list">${o.items.map(i => `<div class="item"><div class="item-main"><div class="item-img">${productImage(i)}</div><div><strong>${i.name}</strong><p class="muted">${peso(i.price)} x ${i.qty}</p></div></div><strong>${peso(i.price * i.qty)}</strong></div>`).join('')}</div><br>
         <div class="summary-line"><span>Total:</span><strong>${peso(o.total)}</strong></div>
         <br><button class="glass-btn liquid" style="width:100%" onclick="closeModal('orderDetailsModal')">Close</button>`;
-      document.getElementById('orderDetailsModal').classList.add('active');
+      openModal('orderDetailsModal');
     }
 
     function updateStatus(type, id, value) {
@@ -865,7 +891,7 @@
       else message('Invalid Login', 'Use the demo account admin / admin.');
     }
 
-    function sellerTopAction() { if (sellerLoggedIn) document.getElementById('logoutModal').classList.add('active'); else showSection('seller'); }
+    function sellerTopAction() { if (sellerLoggedIn) openModal('logoutModal'); else showSection('seller'); }
 
     function updateSellerUI() {
       const topBtn = document.getElementById('sellerTopBtn');
@@ -888,7 +914,7 @@
       renderCrudProduction(); renderCrudHealth(); renderCrudFarms(); renderCrudShop(); renderAdminOrders();
     }
 
-    function actionButtons(type, id) { return `<div class="row-actions"><button class="glass-btn icon-btn" title="Edit" onclick="openEdit('${type}',${id})">✏️</button><button class="glass-btn icon-btn" title="Delete" onclick="deleteItem('${type}',${id})">🗑️</button></div>`; }
+    function actionButtons(type, id) { return `<div class="row-actions"><button class="glass-btn" title="Edit" onclick="openEdit('${type}',${id})">Edit</button><button class="glass-btn" title="Delete" onclick="deleteItem('${type}',${id})">Delete</button></div>`; }
     function statusDropdown(type, id, value, options) { return `<select class="status-select" onchange="updateStatus('${type}', ${id}, this.value)">${options.map(o=>`<option value="${o}" ${o === value ? 'selected' : ''}>${o}</option>`).join('')}</select>`; }
 
     function renderCrudProduction() {
@@ -923,7 +949,7 @@
       if (type === 'farms') fields = `<label>Farm Name<input id="f1" value="${item?.name || ''}"></label><label>Location<input id="f2" value="${item?.location || ''}"></label><label>Herd Count<input id="f3" type="number" value="${item?.herds || 1}"></label><label>Animal Type<input id="f4" value="${item?.animals || ''}"></label>`;
       if (type === 'products') fields = `<label>Product Name<input id="f2" value="${item?.name || ''}"></label><label>Price<input id="f3" type="number" value="${item?.price || 0}"></label><label>Stock<input id="f4" type="number" value="${item?.stock || 0}"></label><label>Status<select id="f6">${['Available','Low Stock','Out of Stock','Hidden'].map(o=>`<option ${productStatus(item || {})===o?'selected':''}>${o}</option>`).join('')}</select></label><label class="full">Description<textarea id="f5">${item?.desc || ''}</textarea></label><div class="full"><label>Product Image<input id="imagePicker" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" onchange="handleProductImagePick(event)"></label><input id="f1" type="hidden" value="${esc(item?.image || item?.icon || '')}"><div id="imagePickNote" class="muted" style="margin-top:8px">JPG, PNG, WEBP, GIF, BMP, or AVIF are supported. Large images are automatically resized before saving.</div><div class="image-preview" id="productImagePreview" style="margin-top:10px">${item ? productImage(item) : 'No image selected'}</div></div>`;
       document.getElementById('crudForm').innerHTML = `<div class="form-grid">${fields}</div><br><button class="primary" style="width:100%" onclick="saveCrud('${type}', ${id || 'null'})">Save</button>`;
-      document.getElementById('crudModal').classList.add('active');
+      openModal('crudModal');
     }
 
     function handleProductImagePick(event) {

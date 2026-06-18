@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarmWise</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --surface: rgba(255, 253, 248, .92);
+      --surface-solid: #fffdf8;
+      --surface-2: #eee7db;
+      --primary: #244a32;
+      --primary-2: #4f7d59;
+      --accent: #8ebc8e;
+      --accent-soft: #e9f5e7;
+      --text: #1e2b22;
+      --muted: #667166;
+      --border: #ded5c5;
+      --danger: #b83b3b;
+      --success: #24734a;
+      --warning: #9a6517;
+      --glass: rgba(255,255,255,.46);
+      --shadow: 0 16px 36px rgba(36, 74, 50, .13);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, Arial, sans-serif; }
+    html { scroll-padding-bottom: 96px; overflow-x: hidden; }
+    body { background: radial-gradient(circle at top left, #e7f2e3 0, transparent 38%), var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 96px; overflow-x: hidden; }
+    body.modal-open { overflow: hidden; }
+    body.modal-open main, body.modal-open header { pointer-events: none; }
+
+    header { background: linear-gradient(135deg, #6e9b72, var(--primary)); color: white; padding: 22px 16px 18px; position: relative; z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .topbar { max-width: 1180px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    h1 { font-size: 25px; line-height: 1; letter-spacing: -.02em; }
+    .subtitle { font-size: 13px; opacity: .9; margin-top: 6px; line-height: 1.4; }
+    .seller-btn { border: 1px solid rgba(255,255,255,.34); background: rgba(255,255,255,.16); color: white; border-radius: 999px; padding: 10px 14px; font-weight: 900; cursor: pointer; backdrop-filter: blur(14px); }
+    .seller-btn.hidden { display:none; }
+
+    nav { position: fixed; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(1000px, calc(100% - 24px)); display: flex; gap: 7px; overflow-x: auto; padding: 8px; scrollbar-width: none; background: rgba(255,255,255,.58); border: 1px solid rgba(255,255,255,.7); border-radius: 25px; box-shadow: 0 18px 45px rgba(26, 56, 36, .22); z-index: 45; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    nav::-webkit-scrollbar { display: none; }
+    nav button { flex: 1 0 auto; border: none; background: transparent; color: var(--muted); padding: 10px 13px; border-radius: 18px; cursor: pointer; font-weight: 900; white-space: nowrap; }
+    nav button.active { background: rgba(36, 74, 50, .94); color: white; box-shadow: inset 0 1px 0 rgba(255,255,255,.24); }
+    body.seller-dashboard-mode header nav { display: none; }
+    body.seller-dashboard-mode .cart-float { display: none; }
+    body.seller-dashboard-mode .seller-tabs { position: fixed; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(1000px, calc(100% - 24px)); display: flex; gap: 7px; overflow-x: auto; padding: 8px; scrollbar-width: none; background: rgba(255,255,255,.58); border: 1px solid rgba(255,255,255,.7); border-radius: 25px; box-shadow: 0 18px 45px rgba(26, 56, 36, .22); z-index: 45; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); margin: 0; }
+    body.seller-dashboard-mode .seller-tabs::-webkit-scrollbar { display: none; }
+    body.seller-dashboard-mode .seller-tabs button { flex: 1 0 auto; border: none; background: transparent; color: var(--muted); padding: 10px 13px; border-radius: 18px; cursor: pointer; font-weight: 900; white-space: nowrap; }
+    body.seller-dashboard-mode .seller-tabs button.active { background: rgba(36, 74, 50, .94); color: white; box-shadow: inset 0 1px 0 rgba(255,255,255,.24); }
+
+    main { max-width: 1180px; margin: 20px auto 96px; padding: 0 16px 28px; overflow-x: hidden; }
+    section { display: none; padding-bottom: 8px; }
+    section.active { display: block; animation: fade .22s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.12) rotate(-5deg); } 100% { transform: scale(1); } }
+    .cart-float.bump { animation: bump .35s ease; }
+
+    .hero { display: grid; grid-template-columns: 1.4fr .8fr; gap: 16px; margin-bottom: 18px; }
+    .panel, .card, .product, .order-row { background: var(--surface); border: 1px solid rgba(222,213,197,.85); border-radius: 22px; box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+    .panel { padding: 22px; }
+    .panel h2, .section-title { color: var(--primary); font-size: 22px; margin-bottom: 8px; }
+    .muted { color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card { padding: 17px; }
+    .card .label { font-size: 13px; color: var(--muted); margin-bottom: 9px; }
+    .card .number { font-size: 28px; font-weight: 950; color: var(--primary); }
+    .tag { display: inline-flex; align-items:center; gap:5px; padding: 6px 9px; border-radius: 999px; font-size: 12px; font-weight: 900; margin-top: 10px; background: #f6ebd4; color: var(--warning); }
+    .tag.green { background: #e4f4e8; color: var(--success); }
+    .tag.red { background: #ffe4e4; color: var(--danger); }
+
+
+
+    .dashboard-hero { position: relative; overflow: hidden; padding: 20px; background: linear-gradient(135deg, rgba(36,74,50,.96), rgba(79,125,89,.90)); color: white; border-color: rgba(255,255,255,.20); }
+    .dashboard-hero::after { content:""; position:absolute; width: 210px; height:210px; right:-80px; top:-80px; border-radius:50%; background:rgba(255,255,255,.11); }
+    .dashboard-hero h2 { color: white; font-size: 24px; margin-bottom: 8px; }
+    .dashboard-hero .muted { color: rgba(255,255,255,.82); }
+    .dashboard-hero-content { position:relative; z-index:1; display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; align-items:stretch; }
+    .dashboard-hero-content.dashboard-hero-single { grid-template-columns: 1fr; }
+    .hero-kpis { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:8px; margin-top:16px; }
+    .hero-kpi { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); border-radius:16px; padding:10px; backdrop-filter: blur(14px); }
+    .hero-kpi strong { display:block; font-size:22px; line-height:1; }
+    .hero-kpi span { display:block; margin-top:5px; font-size:11px; font-weight:800; color:rgba(255,255,255,.78); }
+    .today-feed { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.20); border-radius:18px; padding:13px; display:grid; gap:9px; }
+    .today-feed h3 { font-size:15px; color:white; }
+    .today-feed-item { display:flex; align-items:flex-start; gap:9px; padding:9px; border-radius:14px; background:rgba(255,255,255,.12); }
+    .today-feed-icon { width:32px; height:32px; border-radius:12px; display:grid; place-items:center; background:rgba(255,255,255,.20); flex:0 0 auto; }
+    .today-feed-item strong { display:block; font-size:13px; }
+    .today-feed-item p { color:rgba(255,255,255,.76); font-size:12px; line-height:1.35; margin-top:2px; }
+    .dashboard-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; }
+    .metric-card { padding:16px; min-height:auto; display:grid; gap:12px; background:linear-gradient(145deg, rgba(255,253,248,.96), rgba(248,245,237,.92)); }
+    .metric-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .metric-icon { width:42px; height:42px; border-radius:15px; display:grid; place-items:center; background:var(--accent-soft); font-size:21px; }
+    .metric-title { color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+    .metric-value { font-size:30px; font-weight:950; color:var(--primary); line-height:1; margin-top:4px; }
+    .metric-detail { color:var(--muted); font-size:13px; line-height:1.45; }
+    .metric-breakdown { display:flex; gap:7px; flex-wrap:wrap; }
+    .mini-chip { display:inline-flex; align-items:center; gap:5px; padding:6px 8px; border-radius:999px; background:rgba(238,231,219,.82); color:var(--text); font-size:12px; font-weight:850; }
+    .mini-chip.green { background:#e4f4e8; color:var(--success); }
+    .mini-chip.red { background:#ffe4e4; color:var(--danger); }
+    .mini-chip.gold { background:#f6ebd4; color:var(--warning); }
+    .attention-card { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(255,245,245,.75)); }
+    .health-card { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(234,247,235,.72)); }
+
+    .list { display: grid; gap: 12px; }
+    .record-card { display:grid; gap:11px; padding:16px; border-radius:20px; background:linear-gradient(145deg, rgba(255,253,248,.96), rgba(248,245,237,.9)); border:1px solid rgba(222,213,197,.9); box-shadow:0 12px 26px rgba(36,74,50,.09); }
+    .record-card.green { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(228,244,232,.78)); }
+    .record-card.gold { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(246,235,212,.78)); }
+    .record-card.red { background:linear-gradient(145deg, rgba(255,253,248,.97), rgba(255,228,228,.74)); }
+    .record-row { display:grid; grid-template-columns:105px 1fr; gap:10px; align-items:start; }
+    .record-row span { color:var(--muted); font-size:12px; font-weight:950; text-transform:uppercase; letter-spacing:.04em; }
+    .record-row strong, .record-row p { color:var(--text); font-size:15px; line-height:1.35; word-break:break-word; }
+    .record-row .tag { margin-top:0; width:max-content; max-width:100%; }
+    .item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px; background: var(--surface-2); border-radius: 16px; }
+    .item strong { color: var(--text); }
+    .item-img { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 27px; background: linear-gradient(135deg, #f8ead4, #dcebd8); flex: 0 0 auto; }
+    .item-main { display:flex; align-items:center; gap:12px; min-width:0; }
+
+    .products { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .product { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .product-img { height: 118px; border-radius: 18px; display: grid; place-items: center; font-size: 46px; background: linear-gradient(135deg, #f8ead4, #dcebd8); }
+
+    .product-img { overflow: hidden; position: relative; }
+    .product-img img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+    .item-img { overflow: hidden; }
+    .item-img img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+    .mini-thumb, .order-chip span:first-child { overflow: hidden; }
+    .mini-thumb img, .order-chip span:first-child img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+    .admin-product-cell { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .admin-product-cell > div { min-width: 0; }
+    .admin-product-cell strong, .admin-product-cell .muted { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .admin-product-thumb { width: 58px; height: 58px; min-width: 58px; border-radius: 14px; overflow: hidden; display: grid; place-items: center; background: linear-gradient(135deg, #f8ead4, #dcebd8); font-size: 24px; }
+    .admin-product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+    .image-preview { width: 100%; min-height: 130px; max-height: 220px; border: 1px dashed var(--border); border-radius: 18px; background: var(--surface-2); display: grid; place-items: center; overflow: hidden; color: var(--muted); font-weight: 800; }
+    .image-preview img { width: 100%; height: 100%; max-height: 220px; object-fit: cover; display: block; }
+
+    .product-body { min-height: 90px; }
+    .product-body strong { display:block; font-size:17px; margin-bottom:3px; }
+    .product-body .muted { line-height:1.35; }
+    .product-meta { margin-top:auto; }
+    .price { color: var(--primary); font-size: 20px; font-weight: 950; }
+    button.primary, button.secondary, button.danger, button.ghost { border: none; border-radius: 14px; padding: 11px 13px; font-weight: 900; cursor: pointer; }
+    button.primary { background: var(--primary); color: white; }
+    button.secondary { background: var(--accent-soft); color: var(--primary); }
+    button.danger { background: #ffe4e4; color: var(--danger); }
+    button.ghost { background: var(--surface-2); color: var(--text); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    .cart-float { position: fixed; right: 18px; bottom: 98px; z-index: 44; width: 58px; height: 58px; display: grid; place-items: center; background: rgba(255,255,255,.42); color: var(--primary); border: 1px solid rgba(255,255,255,.76); border-radius: 22px; font-size: 22px; font-weight: 950; box-shadow: 0 16px 38px rgba(31, 74, 45, .24); cursor: pointer; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .cart-count { position: absolute; top: -7px; right: -7px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; background: var(--primary); color: white; border: 2px solid rgba(255,255,255,.86); font-size: 12px; line-height: 1; }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.46); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 60; overflow: hidden; }
+    .modal.active { display: flex; }
+    .modal-card { width: min(760px, 100%); max-height: 92vh; overflow: auto; overscroll-behavior: contain; background: var(--surface-solid); border-radius: 24px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+    .modal-card.small { max-width: 430px; }
+    #messageModal { z-index: 90; }
+    #crudModal { z-index: 70; }
+    .modal-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom: 14px; }
+    .close { border:none; width: 38px; height: 38px; border-radius: 50%; background: var(--surface-2); cursor:pointer; font-weight:950; }
+    .form-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    label { font-size: 13px; color: var(--muted); font-weight: 900; }
+    input, select, textarea { width: 100%; margin-top: 6px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: white; color: var(--text); }
+    textarea { min-height: 82px; resize: vertical; }
+    .full { grid-column: 1 / -1; }
+    .summary-line { display:flex; justify-content:space-between; gap:12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .summary-line:last-child { border-bottom: none; font-weight: 950; color: var(--primary); font-size: 18px; }
+
+    .login-page { max-width: 430px; margin: 28px auto; }
+    .dash-head { display:flex; justify-content: space-between; align-items:center; gap:12px; margin-bottom: 14px; }
+    .seller-tabs { display:flex; gap:8px; overflow-x:auto; margin: 14px 0; padding-bottom: 4px; }
+    .seller-tabs button { flex:0 0 auto; }
+    .admin-pane { display:none; }
+    .admin-pane.active { display:block; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 16px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align:top; }
+    th { color: var(--primary); background: var(--surface-2); }
+    .table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border); background: white; }
+    .row-actions { display:flex; gap:7px; flex-wrap:wrap; }
+    .row-actions button { padding: 8px 10px; border-radius: 10px; }
+    .icon-btn { width: 34px; height: 34px; padding: 0 !important; display: inline-grid; place-items: center; border-radius: 12px !important; font-size: 15px; }
+    .seller-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+    .seller-stats .card { padding: 14px; border-radius: 18px; }
+    .seller-stats .number { font-size: 24px; margin-top: 4px; }
+    .status-select { min-width: 118px; margin-top: 0; padding: 8px 10px; border-radius: 12px; font-weight: 800; }
+    .order-items-mini { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .order-chip { display:flex; align-items:center; gap:6px; background:var(--accent-soft); border:1px solid var(--border); padding:6px 8px; border-radius:999px; font-size:12px; font-weight:800; color:var(--primary); }
+    .order-chip span:first-child { width:22px; height:22px; display:grid; place-items:center; background:white; border-radius:50%; }
+
+    .glass-btn { border: 1px solid rgba(255,255,255,.72) !important; background: rgba(255,255,255,.48) !important; color: var(--primary) !important; box-shadow: 0 12px 28px rgba(36,74,50,.14), inset 0 1px 0 rgba(255,255,255,.75); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+    .order-preview { width:100%; display:grid; gap:10px; }
+    .order-preview-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .order-id { font-size:13px; font-weight:950; color:var(--primary); background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.7); padding:6px 9px; border-radius:999px; }
+    .order-customer { font-size:16px; font-weight:950; color:var(--text); margin-top:6px; }
+    .order-meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:2px; }
+    .order-meta span { background:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.65); border-radius:13px; padding:8px; color:var(--muted); font-size:12px; font-weight:800; }
+    .order-side { display:grid; gap:10px; justify-items:end; }
+    .order-total-label { font-size:12px; color:var(--muted); font-weight:900; margin-bottom:2px; }
+    .qty-controls { display:flex; align-items:center; gap:8px; }
+    .qty-controls button { width: 32px; height: 32px; border-radius: 10px; border: none; background: var(--surface-2); cursor:pointer; font-weight:950; }
+
+    .order-card { background: linear-gradient(145deg, rgba(255,253,248,.94), rgba(239,233,222,.88)); border: 1px solid rgba(255,255,255,.7); border-radius: 22px; padding: 14px; box-shadow: 0 14px 32px rgba(36,74,50,.12); display: grid; gap: 12px; }
+    .order-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .order-title-block { min-width:0; }
+    .order-id-pill { display:inline-flex; align-items:center; width:max-content; padding: 6px 10px; border-radius:999px; background:rgba(255,255,255,.58); border:1px solid rgba(255,255,255,.78); color:var(--primary); font-size:12px; font-weight:950; box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+    .order-name { margin-top:7px; font-size:18px; font-weight:950; letter-spacing:-.02em; color:var(--text); }
+    .order-info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .order-info { background:rgba(255,255,255,.45); border:1px solid rgba(255,255,255,.65); border-radius:14px; padding:9px 10px; min-width:0; }
+    .order-info small { display:block; color:var(--muted); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+    .order-info strong { color:var(--text); font-size:13px; line-height:1.25; word-break:break-word; }
+    .order-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid rgba(222,213,197,.8); padding-top:10px; }
+    .order-total-inline { display:inline-flex; align-items:center; gap:6px; color:var(--primary); font-weight:950; background:var(--accent-soft); border:1px solid rgba(142,188,142,.38); padding:8px 11px; border-radius:999px; }
+    .order-total-inline span { color:var(--muted); font-size:13px; }
+    .order-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .glass-btn.liquid { border: 1px solid rgba(255,255,255,.82) !important; background: linear-gradient(135deg, rgba(255,255,255,.62), rgba(255,255,255,.30)) !important; color: var(--primary) !important; border-radius: 999px !important; padding: 10px 14px !important; box-shadow: 0 14px 30px rgba(36,74,50,.16), inset 0 1px 0 rgba(255,255,255,.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); font-weight:950; }
+
+
+    .admin-table td[data-label]::before { display:none; }
+
+    @media (max-width: 700px) {
+      .table-wrap { overflow: visible; border: none; background: transparent; }
+      .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap tr, .table-wrap th, .table-wrap td { display: block; width: 100%; }
+      .table-wrap thead { display: none; }
+      .table-wrap tbody { display: grid; gap: 10px; }
+      .table-wrap tr { background: rgba(255,253,248,.94); border: 1px solid rgba(222,213,197,.9); border-radius: 17px; padding: 10px; box-shadow: 0 10px 24px rgba(36,74,50,.08); }
+      .table-wrap td { border-bottom: 0; padding: 7px 2px; font-size: 13px; }
+      .table-wrap td[data-label] { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: start; }
+      .table-wrap td[data-label]::before { content: attr(data-label); display: block; color: var(--muted); font-size: 11px; font-weight: 950; text-transform: uppercase; letter-spacing: .03em; }
+      .table-wrap td[data-label="Action"], .table-wrap td[data-label="Manage"] { display: flex; justify-content: flex-end; }
+      .table-wrap td[data-label="Action"]::before, .table-wrap td[data-label="Manage"]::before { display: none; }
+      .status-select { min-width: 0; width: 100%; }
+      .row-actions { justify-content: flex-end; }
+
+      .admin-product-cell { align-items: flex-start; }
+      .admin-product-thumb { width: 72px; height: 72px; min-width: 72px; border-radius: 16px; }
+      .table-wrap td[data-label="Product"] { grid-template-columns: 1fr; gap: 8px; }
+      .table-wrap td[data-label="Product"]::before { margin-bottom: 2px; }
+    }
+
+    @media (max-width: 850px) {
+      h1 { font-size: 22px; }
+      .seller-btn { padding: 9px 11px; font-size: 13px; }
+      .hero { grid-template-columns: 1fr; }
+      .grid, .grid-3, .products { grid-template-columns: repeat(2, 1fr); }
+      .panel { padding: 18px; }
+    }
+
+    @media (max-width: 560px) {
+      body { padding-bottom: 104px; }
+      main { padding: 0 12px 24px; margin-top: 14px; margin-bottom: 102px; }
+      .grid, .grid-3, .products { grid-template-columns: 1fr; }
+      .seller-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 7px; }
+      .seller-stats .card { padding: 10px 7px; border-radius: 14px; }
+      .seller-stats .card .label { font-size: 10px; margin-bottom: 3px; }
+      .seller-stats .number { font-size: 18px; }
+      .order-meta { grid-template-columns:1fr; }
+      .order-info-grid { grid-template-columns:1fr; }
+      .order-card-head { align-items:flex-start; }
+      .order-side { width:100%; justify-items:stretch; }
+      .form-grid { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; }
+      .subtitle { display: block; font-size: 12px; line-height: 1.35; max-width: 240px; }
+      .product-img { height: 96px; }
+      nav, body.seller-dashboard-mode .seller-tabs { bottom: max(10px, env(safe-area-inset-bottom)); width: calc(100% - 12px); border-radius: 18px; padding: 6px; gap: 3px; justify-content: space-between; overflow-x: hidden; }
+      nav button, body.seller-dashboard-mode .seller-tabs button { flex: 1 1 0; min-width: 0; padding: 9px 5px; font-size: 11px; border-radius: 15px; letter-spacing: -0.02em; }
+      .item { align-items: flex-start; flex-direction: column; }
+      .cart-float { right: 14px; bottom: 94px; width: 54px; height: 54px; border-radius: 20px; }
+      .dash-head { align-items:flex-start; flex-direction:column; }
+
+      .dashboard-hero { padding: 16px; }
+      .dashboard-hero-content { grid-template-columns: 1fr; }
+      .hero-kpis { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .dashboard-grid { grid-template-columns: 1fr; gap: 11px; }
+      .metric-card { padding: 14px; border-radius: 18px; }
+      .metric-icon { width: 38px; height: 38px; border-radius: 13px; }
+      .metric-value { font-size: 27px; }
+
+    }
+
+
+    @media (max-width: 390px) {
+      nav, body.seller-dashboard-mode .seller-tabs { width: calc(100% - 8px); padding: 5px; gap: 2px; }
+      nav button, body.seller-dashboard-mode .seller-tabs button { padding: 8px 3px; font-size: 10px; border-radius: 13px; }
+    }
+
+    /* UI polish patch: cleaner dashboard and stable product images */
+    .dashboard-hero h2 { letter-spacing: -.03em; }
+    .dashboard-stack { display:grid; gap:8px; margin-top:8px; }
+    .dash-pill-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+    .dash-pill { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border-radius:999px; background:rgba(238,231,219,.82); color:var(--text); font-size:12px; font-weight:850; }
+    .dash-pill.green { background:#e4f4e8; color:var(--success); }
+    .dash-pill.red { background:#ffe4e4; color:var(--danger); }
+    .dash-pill.gold { background:#f6ebd4; color:var(--warning); }
+    .detail-list { display:grid; gap:7px; margin-top:8px; }
+    .detail-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 10px; border-radius:13px; background:rgba(238,231,219,.68); }
+    .detail-row span { color:var(--muted); font-size:12px; font-weight:850; }
+    .detail-row strong { color:var(--primary); font-size:13px; }
+    .products { align-items: stretch; }
+    .product { overflow:hidden; min-width:0; }
+    .product-img { width:100%; height:150px; min-height:150px; max-height:150px; border-radius:18px; background:linear-gradient(135deg,#f8ead4,#dcebd8); }
+    .product-img img { width:100%; height:100%; object-fit:cover; object-position:center; }
+    .product-body { min-height:0; display:grid; gap:4px; }
+    .product-body strong, .product-body p { min-width:0; overflow-wrap:anywhere; }
+    .product button.primary { width:100%; min-height:46px; border-radius:16px; }
+    .farm-card-clean { display:grid; gap:12px; }
+    .farm-card-clean .farm-title { font-size:17px; font-weight:950; color:var(--text); }
+    .farm-card-clean .farm-sub { color:var(--muted); font-size:13px; }
+    .farm-card-clean .farm-count { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; padding:12px; border-radius:16px; background:rgba(238,231,219,.72); }
+    .farm-card-clean .farm-count strong { color:var(--primary); font-size:30px; line-height:1; }
+    .farm-card-clean .farm-count span { color:var(--muted); font-weight:850; font-size:12px; }
+    @media (max-width: 560px) {
+      .products { grid-template-columns: 1fr !important; gap: 16px; }
+      .product { padding: 12px; border-radius: 22px; }
+      .product-img { height: 176px !important; min-height:176px !important; max-height:176px !important; }
+      .product-body strong { font-size:18px; }
+      .product-body .muted { font-size:13px; }
+      .price { font-size:22px; }
+      .metric-card { min-height:0; }
+      .dashboard-hero { border-radius:22px; }
+      .today-feed-item p { line-height:1.35; }
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>FarmWise</h1>
+        <p class="subtitle">Animal science, farm monitoring, and farm product selling</p>
+      </div>
+      <button id="sellerTopBtn" class="seller-btn" onclick="sellerTopAction()">Seller Login</button>
+    </div>
+    <nav>
+      <button class="active" data-section="home" onclick="showSection('home')">Dashboard</button>
+      <button data-section="production" onclick="showSection('production')">Production</button>
+      <button data-section="health" onclick="showSection('health')">Health</button>
+      <button data-section="farms" onclick="showSection('farms')">Farms</button>
+      <button data-section="shop" onclick="showSection('shop')">Shop</button>
+      <button data-section="orders" onclick="showSection('orders')">Orders</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home" class="active">
+      <div class="panel dashboard-hero">
+        <div class="dashboard-hero-content dashboard-hero-single">
+          <div>
+            <h2>Farm Overview</h2>
+            <p class="muted">A quick view of your farms, herds, health alerts, shop stocks, and orders.</p>
+            <div class="hero-kpis" id="heroKpis"></div>
+          </div>
+        </div>
+      </div><br />
+      <div class="dashboard-grid" id="dashboardCards"></div>
+    </section>
+
+    <section id="production">
+      <h2 class="section-title">Production Monitoring</h2>
+      <div class="grid-3" id="productionCards"></div><br />
+      <div class="panel list" id="productionList"></div>
+    </section>
+
+    <section id="health">
+      <h2 class="section-title">Health Monitoring</h2>
+      <div class="grid-3" id="healthCards"></div><br />
+      <div class="panel list" id="healthList"></div>
+    </section>
+
+    <section id="farms">
+      <h2 class="section-title">Farms & Herds</h2>
+      <div class="grid-3" id="farmCards"></div>
+    </section>
+
+    <section id="shop">
+      <div class="dash-head">
+        <div><h2 class="section-title">Farm Shop</h2><p class="muted">Buy fresh farm products directly from managed farms.</p></div>
+      </div>
+      <div class="products" id="productList"></div>
+    </section>
+
+    <section id="orders">
+      <h2 class="section-title">Orders</h2>
+      <p class="muted">All placed orders are listed here.</p><br />
+      <div id="ordersPageList" class="list"></div>
+    </section>
+
+    <section id="orderSuccess">
+      <div class="panel">
+        <h2 class="section-title">Checkout Successful</h2>
+        <p class="muted">Your order was placed successfully. Here are the order details.</p>
+      </div><br />
+      <div id="successOrderDetails" class="panel"></div><br />
+      <button class="primary" onclick="showSection('orders')">View Orders</button>
+      <button class="secondary" onclick="showSection('shop')">Continue Shopping</button>
+    </section>
+
+    <section id="seller">
+      <div id="loginBox" class="login-page panel">
+        <h2 class="section-title">Seller Login</h2>
+        <p class="muted">Demo account is already filled for easier debugging.</p><br />
+        <input id="username" value="admin" placeholder="Username" aria-label="Username" /><br />
+        <input id="password" type="password" value="admin" placeholder="Password" aria-label="Password" /><br /><br />
+        <button class="primary" style="width:100%" onclick="loginSeller()">Login</button>
+      </div>
+
+      <div id="sellerDash" style="display:none">
+        <div class="dash-head">
+          <div><h2 class="section-title">Seller Dashboard</h2><p class="muted">Manage production, health, farms, products, stocks, and customer orders.</p></div>
+        </div>
+        <div class="grid-3 seller-stats">
+          <div class="card"><div class="label">Total Products</div><div class="number" id="dashProducts">0</div></div>
+          <div class="card"><div class="label">Total Stock</div><div class="number" id="dashStock">0</div></div>
+          <div class="card"><div class="label">Orders</div><div class="number" id="dashOrders">0</div></div>
+        </div>
+        <div class="seller-tabs" id="sellerTabs">
+          <button class="secondary active" data-pane="adminProduction" onclick="showAdminPane('adminProduction')">Production</button>
+          <button class="secondary" data-pane="adminHealth" onclick="showAdminPane('adminHealth')">Health</button>
+          <button class="secondary" data-pane="adminFarms" onclick="showAdminPane('adminFarms')">Farms</button>
+          <button class="secondary" data-pane="adminShop" onclick="showAdminPane('adminShop')">Shop</button>
+          <button class="secondary" data-pane="adminOrders" onclick="showAdminPane('adminOrders')">Orders</button>
+        </div>
+
+        <div id="adminProduction" class="admin-pane active panel"></div>
+        <div id="adminHealth" class="admin-pane panel"></div>
+        <div id="adminFarms" class="admin-pane panel"></div>
+        <div id="adminShop" class="admin-pane panel"></div>
+        <div id="adminOrders" class="admin-pane panel"></div>
+      </div>
+    </section>
+  </main>
+
+  <button id="cartFloat" class="cart-float" onclick="openCheckout()" aria-label="Open cart">🛒<span class="cart-count" id="cartCount">0</span></button>
+
+  <div class="modal" id="checkoutModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 class="section-title">Checkout</h2><button class="close" onclick="closeModal('checkoutModal')">×</button></div>
+      <div id="cartItems" class="list"></div><br />
+      <div class="panel">
+        <h3 style="color:var(--primary);margin-bottom:10px">Customer Details</h3>
+        <div class="form-grid">
+          <label>Full Name<input id="custName" placeholder="Juan Dela Cruz" /></label>
+          <label>Phone Number<input id="custPhone" placeholder="09XXXXXXXXX" /></label>
+          <label class="full">Delivery Address<textarea id="custAddress" placeholder="House no., street, barangay, city"></textarea></label>
+          <label>Payment Method<select id="payment"><option>Cash on Delivery</option><option>GCash</option><option>Bank Transfer</option></select></label>
+          <label>Delivery Option<select id="delivery"><option value="80">Standard Delivery - ₱80</option><option value="150">Express Delivery - ₱150</option><option value="0">Farm Pickup - Free</option></select></label>
+        </div><br />
+        <div id="orderSummary"></div><br />
+        <button class="primary" style="width:100%" onclick="placeOrder()">Place Order</button>
+        <button class="secondary" style="width:100%; margin-top:10px" onclick="closeModal('checkoutModal'); showSection('shop')">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="logoutModal">
+    <div class="modal-card small">
+      <div class="modal-head"><h2 class="section-title">Logout Seller?</h2><button class="close" onclick="closeModal('logoutModal')">×</button></div>
+      <p class="muted">Are you sure you want to logout? You will be redirected to the dashboard.</p><br />
+      <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap">
+        <button class="secondary" onclick="closeModal('logoutModal')">No</button>
+        <button class="danger" onclick="confirmLogout()">Yes, Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="messageModal">
+    <div class="modal-card small">
+      <div class="modal-head"><h2 class="section-title" id="messageTitle">Notice</h2><button class="close" onclick="closeModal('messageModal')">×</button></div>
+      <p class="muted" id="messageText"></p><br />
+      <button id="messageActionBtn" class="primary" style="width:100%" onclick="closeModal('messageModal')">OK</button>
+    </div>
+  </div>
+
+
+
+  <div class="modal" id="orderDetailsModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 class="section-title">Order Details</h2><button class="close" onclick="closeModal('orderDetailsModal')">×</button></div>
+      <div id="orderDetailsContent"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="crudModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 class="section-title" id="crudTitle">Manage</h2><button class="close" onclick="closeModal('crudModal')">×</button></div>
+      <div id="crudForm"></div>
+    </div>
+  </div>
+
+  <script>
+    let products = [
+      { id: 1, name: 'Fresh Cow Milk', price: 80, stock: 35, status: 'Available', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=900&q=80', desc: 'Fresh dairy product' },
+      { id: 2, name: 'Egg Tray', price: 220, stock: 18, status: 'Available', image: 'https://images.unsplash.com/photo-1518569656558-1f25e69d93d7?auto=format&fit=crop&w=900&q=80', desc: 'Farm fresh eggs' },
+      { id: 3, name: 'Goat Meat Pack', price: 450, stock: 10, status: 'Available', image: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=900&q=80', desc: 'Packed goat meat' },
+      { id: 4, name: 'Organic Fertilizer', price: 150, stock: 26, status: 'Available', image: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80', desc: 'Natural farm fertilizer' },
+      { id: 5, name: 'Chicken Feed Mix', price: 380, stock: 14, status: 'Available', image: 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=900&q=80', desc: 'Feed for poultry' },
+      { id: 6, name: 'Farm Vitamins', price: 260, stock: 8, status: 'Low Stock', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80', desc: 'Animal supplements' }
+    ];
+    let production = [
+      { id: 1, title: 'Dairy Cattle', value: '180L', note: 'Milk production stable, average 12L/head.', status: 'Good' },
+      { id: 2, title: 'Layer Poultry', value: '420 eggs', note: 'Egg output slightly lower than yesterday.', status: 'Observe' },
+      { id: 3, title: 'Goat Herd', value: '38kg feed', note: 'Feed conversion normal.', status: 'Normal' }
+    ];
+    let health = [
+      { id: 1, animal: 'Cow #C-102', condition: 'Low appetite', action: 'Give vitamins and observe for 24 hours.', status: 'Needs check' },
+      { id: 2, animal: 'Goat #G-044', condition: 'For deworming', action: 'Deworming scheduled on Friday.', status: 'Scheduled' },
+      { id: 3, animal: 'Chicken Batch P-07', condition: 'Vaccinated', action: 'Vaccination completed.', status: 'Done' }
+    ];
+    let farms = [
+      { id: 1, name: 'Green Valley Farm', location: 'Laguna', herds: 4, animals: 'Cattle' },
+      { id: 2, name: 'Hilltop Poultry', location: 'Batangas', herds: 3, animals: 'Poultry' },
+      { id: 3, name: 'Riverbend Goat Farm', location: 'Cavite', herds: 2, animals: 'Goats' }
+    ];
+    let cart = [];
+    let orders = [];
+    let sellerLoggedIn = false;
+    let currentSection = 'home';
+    const STORAGE_KEY = 'farmwiseAppDataV3';
+
+    const defaultProductImages = [
+      'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1518569656558-1f25e69d93d7?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=900&q=80'
+    ];
+
+    function normalizeProductImages() {
+      products = products.map((p, index) => {
+        const raw = String(p.image || p.icon || '').trim();
+        const valid = /^(https?:|data:image\/)/i.test(raw);
+        return { ...p, image: valid ? raw : defaultProductImages[index % defaultProductImages.length], icon: '' };
+      });
+    }
+
+    function saveData() {
+      const data = { products, production, health, farms, cart, orders };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (error) {
+        console.warn('FarmWise storage is full.', error);
+        message('Storage Full', 'The selected image is still too large for browser storage. Please choose a smaller image or use a compressed photo.');
+      }
+    }
+
+    function loadData() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (!saved) return;
+        if (Array.isArray(saved.products)) products = saved.products.map(p => ({ ...p, image: p.image || p.icon, status: p.status || (Number(p.stock || 0) <= 0 ? 'Out of Stock' : Number(p.stock || 0) < 10 ? 'Low Stock' : 'Available') }));
+        if (Array.isArray(saved.production)) production = saved.production;
+        if (Array.isArray(saved.health)) health = saved.health;
+        if (Array.isArray(saved.farms)) farms = saved.farms;
+        if (Array.isArray(saved.cart)) cart = saved.cart;
+        if (Array.isArray(saved.orders)) orders = saved.orders;
+      } catch (error) {
+        console.warn('FarmWise storage could not be loaded.', error);
+      }
+    }
+
+    function peso(n) { return '₱' + Number(n).toLocaleString('en-PH'); }
+    function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
+    function esc(v) { return String(v ?? '').replace(/[&<"']/g, m => ({'&':'&amp;','<':'&lt;','\"':'&quot;',"'":'&#039;'}[m])); }
+    function productImage(p, cls = '') {
+      const fallback = 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=900&q=80';
+      const raw = String(p?.image || p?.icon || '').trim();
+      const looksLikeImage = raw && (/^(https?:|data:image\/)/i.test(raw) || raw.startsWith('blob:'));
+      const src = looksLikeImage ? raw : fallback;
+      return `<img src="${esc(src)}" alt="${esc(p?.name || 'Farm product')}" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'">`;
+    }
+    function productStatus(p) {
+      if (p?.status) return p.status;
+      if (Number(p?.stock || 0) <= 0) return 'Out of Stock';
+      if (Number(p?.stock || 0) < 10) return 'Low Stock';
+      return 'Available';
+    }
+    function isSellable(p) { return productStatus(p) !== 'Hidden' && productStatus(p) !== 'Out of Stock' && Number(p.stock || 0) > 0; }
+    function message(title, text, buttonText = 'OK', action = null) {
+      document.getElementById('messageTitle').textContent = title;
+      document.getElementById('messageText').textContent = text;
+      const btn = document.getElementById('messageActionBtn');
+      btn.textContent = buttonText;
+      btn.onclick = action || (() => closeModal('messageModal'));
+      openModal('messageModal');
+    }
+    function goToShopFromMessage() { closeModal('messageModal'); closeModal('checkoutModal'); showSection('shop'); }
+
+    function showSection(id) {
+      currentSection = id;
+      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.section === id));
+      if (id === 'seller') renderSeller();
+      if (id === 'orders') renderOrdersPage();
+      updateSellerUI();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function syncModalLock() {
+      document.body.classList.toggle('modal-open', !!document.querySelector('.modal.active'));
+    }
+    function openModal(id) { document.getElementById(id).classList.add('active'); syncModalLock(); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); syncModalLock(); }
+
+    function renderAll() {
+      renderDashboard(); renderProduction(); renderHealth(); renderFarms(); renderProducts(); renderOrdersPage(); renderSeller(); updateCartCount(); updateSellerUI();
+    }
+
+    function renderDashboard() {
+      const totalFarms = farms.length;
+      const totalHerds = farms.reduce((s,f)=>s+Number(f.herds || 0),0);
+      const healthy = health.filter(h => ['done','normal','good','stable','completed'].includes(String(h.status).toLowerCase())).length;
+      const critical = health.filter(h => String(h.status).toLowerCase().includes('critical')).length;
+      const needs = Math.max(0, health.length - healthy);
+      const visibleProducts = products.filter(p => productStatus(p) !== 'Hidden').length;
+      const lowStock = products.filter(p => productStatus(p) === 'Low Stock' || productStatus(p) === 'Out of Stock').length;
+      const latestAttention = health.find(h => !['done','normal','good','stable','completed'].includes(String(h.status).toLowerCase()));
+      const farmNamesHtml = farms.slice(0,4).map(f => `<span class="dash-pill gold">${esc(f.name)}</span>`).join('') || '<span class="dash-pill">No farms yet</span>';
+      const herdBreakdownHtml = farms.slice(0,4).map(f => `<div class="detail-row"><span>${esc(f.animals)}</span><strong>${Number(f.herds || 0)}</strong></div>`).join('') || '<div class="detail-row"><span>No herd records</span><strong>0</strong></div>';
+
+      document.getElementById('heroKpis').innerHTML = `
+        <div class="hero-kpi"><strong>${totalFarms}</strong><span>Farms</span></div>
+        <div class="hero-kpi"><strong>${totalHerds}</strong><span>Herds</span></div>
+        <div class="hero-kpi"><strong>${needs}</strong><span>Alerts</span></div>
+        <div class="hero-kpi"><strong>${orders.length}</strong><span>Orders</span></div>`;
+      document.getElementById('dashboardCards').innerHTML = `
+        <div class="card metric-card">
+          <div class="metric-head"><div><div class="metric-title">Managed Locations</div><div class="metric-value">${totalFarms}</div></div><div class="metric-icon">🏡</div></div>
+          <div class="metric-detail">Active farms currently managed in the system.</div>
+          <div class="dash-pill-row">${farmNamesHtml}</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-head"><div><div class="metric-title">Herd Population</div><div class="metric-value">${totalHerds}</div></div><div class="metric-icon">🐄</div></div>
+          <div class="metric-detail">Animal group count by farm category.</div>
+          <div class="detail-list">${herdBreakdownHtml}</div>
+        </div>
+        <div class="card metric-card health-card">
+          <div class="metric-head"><div><div class="metric-title">Health Monitoring</div><div class="metric-value">${health.length}</div></div><div class="metric-icon">🩺</div></div>
+          <div class="metric-detail">Current animal health records with live status from seller dashboard.</div>
+          <div class="metric-breakdown"><span class="mini-chip green">Stable: ${healthy}</span><span class="mini-chip gold">Review: ${needs}</span><span class="mini-chip red">Critical: ${critical}</span></div>
+        </div>
+        <div class="card metric-card attention-card">
+          <div class="metric-head"><div><div class="metric-title">Needs Attention</div><div class="metric-value">${needs}</div></div><div class="metric-icon">🚨</div></div>
+          <div class="metric-detail">${latestAttention ? `${esc(latestAttention.animal)} — ${esc(latestAttention.condition)}` : 'No urgent health issues right now.'}</div>
+          <div class="metric-breakdown"><span class="mini-chip ${needs ? 'red' : 'green'}">${needs ? 'Review health' : 'Farm status clear'}</span></div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-head"><div><div class="metric-title">Shop Products</div><div class="metric-value">${visibleProducts}</div></div><div class="metric-icon">🛒</div></div>
+          <div class="metric-detail">Products visible in the customer shop. Hidden items are not shown.</div>
+          <div class="metric-breakdown"><span class="mini-chip ${lowStock ? 'gold' : 'green'}">${lowStock} stock warning</span></div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-head"><div><div class="metric-title">Customer Orders</div><div class="metric-value">${orders.length}</div></div><div class="metric-icon">📦</div></div>
+          <div class="metric-detail">Orders placed through checkout are tracked here and in seller dashboard.</div>
+          <div class="metric-breakdown"><span class="mini-chip green">Live order monitoring</span></div>
+        </div>`;
+    }
+
+    function statusClass(status) {
+      const s = String(status).toLowerCase();
+      if (['good','normal','done','available','delivered','completed'].includes(s)) return 'green';
+      if (s.includes('need') || s.includes('low') || s.includes('critical') || s.includes('cancel') || s.includes('out of stock')) return 'red';
+      return '';
+    }
+
+    function renderProduction() {
+      document.getElementById('productionCards').innerHTML = '';
+      document.getElementById('productionList').classList.remove('panel');
+      document.getElementById('productionList').innerHTML = production.map(p => {
+        const cls = statusClass(p.status) === 'green' ? 'green' : statusClass(p.status) === 'red' ? 'red' : 'gold';
+        return `<div class="record-card ${cls}">
+          <div class="record-row"><span>Title</span><strong>${esc(p.title)}</strong></div>
+          <div class="record-row"><span>Value</span><strong>${esc(p.value)}</strong></div>
+          <div class="record-row"><span>Note</span><p>${esc(p.note)}</p></div>
+          <div class="record-row"><span>Status</span><span class="tag ${statusClass(p.status)}">${esc(p.status)}</span></div>
+        </div>`;
+      }).join('') || '<div class="panel"><p class="muted">No production records yet.</p></div>';
+    }
+
+    function renderHealth() {
+      document.getElementById('healthCards').innerHTML = '';
+      document.getElementById('healthList').classList.remove('panel');
+      document.getElementById('healthList').innerHTML = health.map(h => {
+        const cls = statusClass(h.status) === 'green' ? 'green' : statusClass(h.status) === 'red' ? 'red' : 'gold';
+        return `<div class="record-card ${cls}">
+          <div class="record-row"><span>Animal</span><strong>${esc(h.animal)}</strong></div>
+          <div class="record-row"><span>Condition</span><strong>${esc(h.condition)}</strong></div>
+          <div class="record-row"><span>Action</span><p>${esc(h.action)}</p></div>
+          <div class="record-row"><span>Status</span><span class="tag ${statusClass(h.status)}">${esc(h.status)}</span></div>
+        </div>`;
+      }).join('') || '<div class="panel"><p class="muted">No health records yet.</p></div>';
+    }
+
+    function renderFarms() {
+      document.getElementById('farmCards').innerHTML = farms.map(f => `
+        <div class="card farm-card-clean">
+          <div>
+            <div class="farm-title">${esc(f.name)}</div>
+            <div class="farm-sub">${esc(f.location)}</div>
+          </div>
+          <div class="farm-count"><span>Herd Count</span><strong>${Number(f.herds || 0)}</strong></div>
+          <div class="dash-pill-row"><span class="dash-pill gold">${esc(f.animals)}</span></div>
+        </div>`).join('');
+    }
+
+    function renderProducts() {
+      const visible = products.filter(p => productStatus(p) !== 'Hidden');
+      document.getElementById('productList').innerHTML = visible.length ? visible.map(p => {
+        const status = productStatus(p);
+        return `
+        <div class="product">
+          <div class="product-img">${productImage(p)}</div>
+          <div class="product-body"><strong>${esc(p.name)}</strong><p class="muted">${esc(p.desc || 'Farm product')}</p><p class="muted">Stock: ${Number(p.stock || 0)}</p><span class="tag ${statusClass(status)}">${status}</span></div>
+          <div class="product-meta"><div class="price">${peso(p.price)}</div></div>
+          <button class="primary" ${!isSellable(p) ? 'disabled' : ''} onclick="addToCart(${p.id})">${isSellable(p) ? 'Add to Cart' : status}</button>
+        </div>`;
+      }).join('') : '<div class="panel"><p class="muted">No visible products yet.</p></div>';
+    }
+
+    function addToCart(id) {
+      const p = products.find(x => x.id === id);
+      if (!p || !isSellable(p)) return message('Unavailable Product', 'This product is currently not available in the shop.');
+      const item = cart.find(x => x.id === id);
+      const currentQty = item ? item.qty : 0;
+      if (currentQty >= p.stock) return message('Out of Stock', 'No more stock is available for this product.');
+      if (item) item.qty++; else cart.push({ ...p, qty: 1 });
+      updateCartCount(); saveData(); animateCart();
+    }
+
+    function animateCart() { const c = document.getElementById('cartFloat'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
+    function updateCartCount() { document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.qty, 0); }
+
+    function changeQty(id, diff) {
+      const item = cart.find(x => x.id === id);
+      const p = products.find(x => x.id === id);
+      if (!item) return;
+      item.qty += diff;
+      if (item.qty > p.stock) item.qty = p.stock;
+      if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
+      updateCartCount(); saveData(); renderCheckout();
+    }
+
+    function openCheckout() { openModal('checkoutModal'); renderCheckout(); }
+
+    function renderCheckout() {
+      const box = document.getElementById('cartItems');
+      if (!cart.length) box.innerHTML = '<p class="muted">Your cart is empty. Add farm products from the shop.</p>';
+      else box.innerHTML = cart.map(i => `
+        <div class="item">
+          <div class="item-main"><div class="item-img">${productImage(i)}</div><div><strong>${i.name}</strong><p class="muted">${peso(i.price)} each</p></div></div>
+          <div class="qty-controls"><button onclick="changeQty(${i.id}, -1)">−</button><strong>${i.qty}</strong><button onclick="changeQty(${i.id}, 1)">+</button></div>
+        </div>`).join('');
+      renderSummary();
+    }
+
+    document.getElementById('delivery').addEventListener('change', renderSummary);
+    function renderSummary() {
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const delivery = Number(document.getElementById('delivery').value || 0);
+      const total = subtotal + (cart.length ? delivery : 0);
+      document.getElementById('orderSummary').innerHTML = `
+        <div class="summary-line"><span>Subtotal</span><strong>${peso(subtotal)}</strong></div>
+        <div class="summary-line"><span>Delivery Fee</span><strong>${peso(cart.length ? delivery : 0)}</strong></div>
+        <div class="summary-line"><span>Total</span><strong>${peso(total)}</strong></div>`;
+    }
+
+    function resetCustomerFields() {
+      document.getElementById('custName').value = '';
+      document.getElementById('custPhone').value = '';
+      document.getElementById('custAddress').value = '';
+      document.getElementById('payment').selectedIndex = 0;
+      document.getElementById('delivery').selectedIndex = 0;
+    }
+
+    function placeOrder() {
+      if (!cart.length) return message('Empty Cart', 'Your cart is empty. Please add at least one farm product.', 'Go to Shop', goToShopFromMessage);
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const address = document.getElementById('custAddress').value.trim();
+      if (!name || !phone || !address) return message('Incomplete Details', 'Please complete the customer name, phone number, and delivery address.');
+      const deliveryFee = Number(document.getElementById('delivery').value);
+      const order = {
+        id: 'ORD-' + Date.now().toString().slice(-6),
+        date: new Date().toLocaleString('en-PH'),
+        customer: name, phone, address,
+        payment: document.getElementById('payment').value,
+        delivery: document.getElementById('delivery').selectedOptions[0].textContent,
+        items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, image: i.image || i.icon })),
+        total: cart.reduce((s, i) => s + i.price * i.qty, 0) + deliveryFee,
+        status: 'Pending'
+      };
+      cart.forEach(i => { const p = products.find(x => x.id === i.id); p.stock -= i.qty; });
+      orders.unshift(order);
+      cart = [];
+      resetCustomerFields();
+      updateCartCount(); saveData(); renderAll(); closeModal('checkoutModal'); renderOrderSuccess(order); showSection('orderSuccess');
+    }
+
+    function renderOrderSuccess(order) {
+      document.getElementById('successOrderDetails').innerHTML = `
+        <h3 style="color:var(--primary);margin-bottom:10px">Order ${order.id}</h3>
+        <div class="summary-line"><span>Date</span><strong>${order.date}</strong></div>
+        <div class="summary-line"><span>Customer</span><strong>${order.customer}</strong></div>
+        <div class="summary-line"><span>Phone</span><strong>${order.phone}</strong></div>
+        <div class="summary-line"><span>Address</span><strong>${order.address}</strong></div>
+        <div class="summary-line"><span>Payment</span><strong>${order.payment}</strong></div>
+        <div class="summary-line"><span>Delivery</span><strong>${order.delivery}</strong></div>
+        <div style="margin:12px 0" class="list">${order.items.map(i => `<div class="item"><div class="item-main"><div class="item-img">${productImage(i)}</div><div><strong>${i.name}</strong><p class="muted">${peso(i.price)} x ${i.qty}</p></div></div><strong>${peso(i.price * i.qty)}</strong></div>`).join('')}</div>
+        <div class="summary-line"><span>Status</span><strong>${order.status}</strong></div>
+        <div class="summary-line"><span>Total</span><strong>${peso(order.total)}</strong></div>`;
+    }
+
+    function orderPreviewHtml(o, seller = false) {
+      const itemChips = o.items.map(i => `<div class="order-chip"><span class="mini-thumb">${productImage(i)}</span>${i.name} x${i.qty}</div>`).join('');
+      return `<div class="order-card">
+        <div class="order-card-head">
+          <div class="order-title-block">
+            <span class="order-id-pill">${o.id}</span>
+            <div class="order-name">${o.customer}</div>
+          </div>
+          <span class="tag ${statusClass(o.status)}">${o.status}</span>
+        </div>
+
+        <div class="order-info-grid">
+          <div class="order-info"><small>Date Ordered</small><strong>${o.date}</strong></div>
+          <div class="order-info"><small>Payment</small><strong>${o.payment}</strong></div>
+          <div class="order-info"><small>Address</small><strong>${o.address}</strong></div>
+          <div class="order-info"><small>Delivery</small><strong>${o.delivery}</strong></div>
+        </div>
+
+        <div class="order-items-mini">${itemChips}</div>
+
+        <div class="order-footer">
+          <div class="order-total-inline"><span>Total:</span> ${peso(o.total)}</div>
+          <div class="order-actions">
+            <button class="glass-btn liquid" onclick="viewOrderDetails('${o.id}')">View Details</button>
+            ${seller ? `<select class="status-select" onchange="updateOrderStatus('${o.id}', this.value)">${['Pending','Preparing','For Delivery','Completed','Cancelled'].map(status => `<option value="${status}" ${status === o.status ? 'selected' : ''}>${status}</option>`).join('')}</select>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function renderOrdersPage() {
+      const html = orders.length ? orders.map(o => orderPreviewHtml(o)).join('') : '<div class="panel"><p class="muted">No orders yet.</p></div>';
+      document.getElementById('ordersPageList').innerHTML = html;
+    }
+
+    function viewOrderDetails(orderId) {
+      const o = orders.find(x => x.id === orderId);
+      if (!o) return;
+      document.getElementById('orderDetailsContent').innerHTML = `
+        <div class="panel">
+          <h3 style="color:var(--primary);margin-bottom:10px">${o.id}</h3>
+          <div class="summary-line"><span>Date</span><strong>${o.date}</strong></div>
+          <div class="summary-line"><span>Customer</span><strong>${o.customer}</strong></div>
+          <div class="summary-line"><span>Phone</span><strong>${o.phone}</strong></div>
+          <div class="summary-line"><span>Address</span><strong>${o.address}</strong></div>
+          <div class="summary-line"><span>Payment</span><strong>${o.payment}</strong></div>
+          <div class="summary-line"><span>Delivery</span><strong>${o.delivery}</strong></div>
+          <div class="summary-line"><span>Status</span><strong>${o.status}</strong></div>
+        </div><br>
+        <h3 style="color:var(--primary);margin-bottom:10px">Items Ordered</h3>
+        <div class="list">${o.items.map(i => `<div class="item"><div class="item-main"><div class="item-img">${productImage(i)}</div><div><strong>${i.name}</strong><p class="muted">${peso(i.price)} x ${i.qty}</p></div></div><strong>${peso(i.price * i.qty)}</strong></div>`).join('')}</div><br>
+        <div class="summary-line"><span>Total:</span><strong>${peso(o.total)}</strong></div>
+        <br><button class="glass-btn liquid" style="width:100%" onclick="closeModal('orderDetailsModal')">Close</button>`;
+      openModal('orderDetailsModal');
+    }
+
+    function updateStatus(type, id, value) {
+      const arr = getCollection(type);
+      const item = arr.find(x => x.id === id);
+      if (item) {
+        item.status = value;
+        if (type === 'products' && value === 'Out of Stock') item.stock = 0;
+      }
+      saveData();
+      renderAll();
+    }
+
+    function updateOrderStatus(orderId, value) {
+      const order = orders.find(x => x.id === orderId);
+      if (order) order.status = value;
+      saveData();
+      renderAll();
+    }
+
+    function loginSeller() {
+      const u = document.getElementById('username').value.trim().toLowerCase();
+      const p = document.getElementById('password').value.trim().toLowerCase();
+      if (u === 'admin' && p === 'admin') { sellerLoggedIn = true; updateSellerUI(); renderSeller(); showSection('seller'); }
+      else message('Invalid Login', 'Use the demo account admin / admin.');
+    }
+
+    function sellerTopAction() { if (sellerLoggedIn) openModal('logoutModal'); else showSection('seller'); }
+
+    function updateSellerUI() {
+      const topBtn = document.getElementById('sellerTopBtn');
+      if (!sellerLoggedIn && currentSection === 'seller') topBtn.classList.add('hidden'); else topBtn.classList.remove('hidden');
+      topBtn.textContent = sellerLoggedIn ? 'Logout' : 'Seller Login';
+      document.getElementById('loginBox').style.display = sellerLoggedIn ? 'none' : 'block';
+      document.getElementById('sellerDash').style.display = sellerLoggedIn ? 'block' : 'none';
+      document.body.classList.toggle('seller-dashboard-mode', sellerLoggedIn && currentSection === 'seller');
+    }
+
+    function confirmLogout() { sellerLoggedIn = false; closeModal('logoutModal'); showSection('home'); updateSellerUI(); }
+
+    function showAdminPane(id) { document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('#sellerTabs button').forEach(b => b.classList.toggle('active', b.dataset.pane === id)); }
+
+    function renderSeller() {
+      updateSellerUI();
+      document.getElementById('dashProducts').textContent = products.length;
+      document.getElementById('dashStock').textContent = products.reduce((s,p)=>s+p.stock,0);
+      document.getElementById('dashOrders').textContent = orders.length;
+      renderCrudProduction(); renderCrudHealth(); renderCrudFarms(); renderCrudShop(); renderAdminOrders();
+    }
+
+    function actionButtons(type, id) { return `<div class="row-actions"><button class="glass-btn" title="Edit" onclick="openEdit('${type}',${id})">Edit</button><button class="glass-btn" title="Delete" onclick="deleteItem('${type}',${id})">Delete</button></div>`; }
+    function statusDropdown(type, id, value, options) { return `<select class="status-select" onchange="updateStatus('${type}', ${id}, this.value)">${options.map(o=>`<option value="${o}" ${o === value ? 'selected' : ''}>${o}</option>`).join('')}</select>`; }
+
+    function renderCrudProduction() {
+      const opts = ['Good','Normal','Observe','Low','Needs action'];
+      document.getElementById('adminProduction').innerHTML = `<div class="dash-head"><h2 class="section-title">Production</h2><button class="primary" onclick="openAdd('production')">Add Record</button></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Title</th><th>Value</th><th>Note</th><th>Status</th><th>Action</th></tr></thead><tbody>${production.map(p=>`<tr><td data-label="Title">${p.title}</td><td data-label="Value">${p.value}</td><td data-label="Note">${p.note}</td><td data-label="Status">${statusDropdown('production', p.id, p.status, opts)}</td><td data-label="Action">${actionButtons('production',p.id)}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function renderCrudHealth() {
+      const opts = ['Done','Scheduled','Needs check','Observe','Critical'];
+      document.getElementById('adminHealth').innerHTML = `<div class="dash-head"><h2 class="section-title">Health</h2><button class="primary" onclick="openAdd('health')">Add Record</button></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Animal</th><th>Condition</th><th>Action</th><th>Status</th><th>Manage</th></tr></thead><tbody>${health.map(h=>`<tr><td data-label="Animal">${h.animal}</td><td data-label="Condition">${h.condition}</td><td data-label="Action / Treatment">${h.action}</td><td data-label="Status">${statusDropdown('health', h.id, h.status, opts)}</td><td data-label="Manage">${actionButtons('health',h.id)}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function renderCrudFarms() {
+      document.getElementById('adminFarms').innerHTML = `<div class="dash-head"><h2 class="section-title">Farms & Herds</h2><button class="primary" onclick="openAdd('farms')">Add Farm</button></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Farm</th><th>Location</th><th>Herds</th><th>Animals</th><th>Action</th></tr></thead><tbody>${farms.map(f=>`<tr><td data-label="Farm">${f.name}</td><td data-label="Location">${f.location}</td><td data-label="Herds">${f.herds}</td><td data-label="Animals">${f.animals}</td><td data-label="Action">${actionButtons('farms',f.id)}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function renderCrudShop() {
+      const opts = ['Available','Low Stock','Out of Stock','Hidden'];
+      document.getElementById('adminShop').innerHTML = `<div class="dash-head"><h2 class="section-title">Shop</h2><button class="primary" onclick="openAdd('products')">Add Product</button></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Action</th></tr></thead><tbody>${products.map(p=>`<tr><td data-label="Product"><div class="admin-product-cell"><span class="admin-product-thumb">${productImage(p)}</span><div><strong>${p.name}</strong><br><span class="muted">${p.desc}</span></div></div></td><td data-label="Price">${peso(p.price)}</td><td data-label="Stock">${p.stock}</td><td data-label="Status">${statusDropdown('products', p.id, productStatus(p), opts)}</td><td data-label="Action">${actionButtons('products',p.id)}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function renderAdminOrders() {
+      document.getElementById('adminOrders').innerHTML = `<h2 class="section-title">Order Monitoring</h2><div class="list">${orders.length ? orders.map(o=>orderPreviewHtml(o, true)).join('') : '<p class="muted">No orders yet.</p>'}</div>`;
+    }
+
+    function openAdd(type) { openCrud(type, null); }
+    function openEdit(type, id) { openCrud(type, id); }
+    function getCollection(type) { return type === 'production' ? production : type === 'health' ? health : type === 'farms' ? farms : products; }
+
+    function openCrud(type, id) {
+      const arr = getCollection(type); const item = id ? arr.find(x=>x.id===id) : null;
+      const isEdit = !!item; document.getElementById('crudTitle').textContent = (isEdit ? 'Edit ' : 'Add ') + ({production:'Production Record',health:'Health Record',farms:'Farm / Herd',products:'Shop Product'}[type]);
+      let fields = '';
+      if (type === 'production') fields = `<label>Title<input id="f1" value="${item?.title || ''}"></label><label>Value<input id="f2" value="${item?.value || ''}"></label><label class="full">Note<textarea id="f3">${item?.note || ''}</textarea></label><label>Status<select id="f4"><option ${(!item || item.status === 'Good') ? 'selected' : ''}>Good</option><option ${item?.status === 'Normal' ? 'selected' : ''}>Normal</option><option ${item?.status === 'Observe' ? 'selected' : ''}>Observe</option><option ${item?.status === 'Low' ? 'selected' : ''}>Low</option><option ${item?.status === 'Needs action' ? 'selected' : ''}>Needs action</option></select></label>`;
+      if (type === 'health') fields = `<label>Animal<input id="f1" value="${item?.animal || ''}"></label><label>Condition<input id="f2" value="${item?.condition || ''}"></label><label class="full">Action / Treatment<textarea id="f3">${item?.action || ''}</textarea></label><label>Status<select id="f4"><option ${(!item || item.status === 'Scheduled') ? 'selected' : ''}>Scheduled</option><option ${item?.status === 'Done' ? 'selected' : ''}>Done</option><option ${item?.status === 'Needs check' ? 'selected' : ''}>Needs check</option><option ${item?.status === 'Observe' ? 'selected' : ''}>Observe</option><option ${item?.status === 'Critical' ? 'selected' : ''}>Critical</option></select></label>`;
+      if (type === 'farms') fields = `<label>Farm Name<input id="f1" value="${item?.name || ''}"></label><label>Location<input id="f2" value="${item?.location || ''}"></label><label>Herd Count<input id="f3" type="number" value="${item?.herds || 1}"></label><label>Animal Type<input id="f4" value="${item?.animals || ''}"></label>`;
+      if (type === 'products') fields = `<label>Product Name<input id="f2" value="${item?.name || ''}"></label><label>Price<input id="f3" type="number" value="${item?.price || 0}"></label><label>Stock<input id="f4" type="number" value="${item?.stock || 0}"></label><label>Status<select id="f6">${['Available','Low Stock','Out of Stock','Hidden'].map(o=>`<option ${productStatus(item || {})===o?'selected':''}>${o}</option>`).join('')}</select></label><label class="full">Description<textarea id="f5">${item?.desc || ''}</textarea></label><div class="full"><label>Product Image<input id="imagePicker" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" onchange="handleProductImagePick(event)"></label><input id="f1" type="hidden" value="${esc(item?.image || item?.icon || '')}"><div id="imagePickNote" class="muted" style="margin-top:8px">JPG, PNG, WEBP, GIF, BMP, or AVIF are supported. Large images are automatically resized before saving.</div><div class="image-preview" id="productImagePreview" style="margin-top:10px">${item ? productImage(item) : 'No image selected'}</div></div>`;
+      document.getElementById('crudForm').innerHTML = `<div class="form-grid">${fields}</div><br><button class="primary" style="width:100%" onclick="saveCrud('${type}', ${id || 'null'})">Save</button>`;
+      openModal('crudModal');
+    }
+
+    function handleProductImagePick(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        message('Unsupported File', 'Please choose an image file such as JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+        event.target.value = '';
+        return;
+      }
+      const note = document.getElementById('imagePickNote');
+      if (note) note.textContent = 'Processing image...';
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxSide = 900;
+            let { width, height } = img;
+            const scale = Math.min(1, maxSide / Math.max(width, height));
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fffdf8';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+            let dataUrl = canvas.toDataURL('image/webp', 0.78);
+            if (!dataUrl.startsWith('data:image/webp')) dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+            document.getElementById('f1').value = dataUrl;
+            document.getElementById('productImagePreview').innerHTML = `<img src="${dataUrl}" alt="Product image preview">`;
+            if (note) note.textContent = 'Image ready. Large files are resized automatically for browser storage.';
+          } catch (err) {
+            document.getElementById('f1').value = reader.result;
+            document.getElementById('productImagePreview').innerHTML = `<img src="${reader.result}" alt="Product image preview">`;
+            if (note) note.textContent = 'Image ready.';
+          }
+        };
+        img.onerror = () => message('Image Error', 'The selected image could not be loaded. Please try another file.');
+        img.src = reader.result;
+      };
+      reader.onerror = () => message('Image Error', 'The selected image could not be read. Please try again.');
+      reader.readAsDataURL(file);
+    }
+
+    function saveCrud(type, id) {
+      const arr = getCollection(type); let obj;
+      if (type === 'production') obj = { id: id || nextId(arr), title:f1.value.trim(), value:f2.value.trim(), note:f3.value.trim(), status:f4.value.trim() };
+      if (type === 'health') obj = { id: id || nextId(arr), animal:f1.value.trim(), condition:f2.value.trim(), action:f3.value.trim(), status:f4.value.trim() };
+      if (type === 'farms') obj = { id: id || nextId(arr), name:f1.value.trim(), location:f2.value.trim(), herds:Number(f3.value || 0), animals:f4.value.trim() };
+      if (type === 'products') {
+        const status = f6.value.trim();
+        obj = { id: id || nextId(arr), image:f1.value.trim(), icon:f1.value.trim(), name:f2.value.trim(), price:Number(f3.value || 0), stock:Number(f4.value || 0), status, desc:f5.value.trim() };
+        if (status === 'Out of Stock') obj.stock = 0;
+      }
+      const required = Object.values(obj).filter(v => typeof v === 'string').every(v => v.length > 0);
+      if (!required) return message('Missing Details', 'Please complete all text fields before saving.');
+      if (id) { const idx = arr.findIndex(x=>x.id===id); arr[idx] = obj; } else arr.push(obj);
+      closeModal('crudModal'); saveData(); renderAll(); message('Saved', id ? 'Updated successfully.' : 'Added successfully.');
+    }
+
+    function deleteItem(type, id) {
+      if (type === 'production') production = production.filter(x=>x.id!==id);
+      if (type === 'health') health = health.filter(x=>x.id!==id);
+      if (type === 'farms') farms = farms.filter(x=>x.id!==id);
+      if (type === 'products') products = products.filter(x=>x.id!==id);
+      saveData(); renderAll(); message('Deleted', 'Deleted successfully.');
+    }
+
+    loadData();
+    normalizeProductImages();
+    saveData();
+    renderAll();
+  </script>
+</body>
+</html>
